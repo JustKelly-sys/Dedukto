@@ -1,0 +1,31 @@
+{
+  "name": "dedukto",
+  "version": "1.0.0",
+  "description": "Open-source multi-country payroll calculation engine built on n8n. Supports South Africa, United Kingdom, and United States tax jurisdictions.",
+  "main": "tax-logic/index.js",
+  "scripts": {
+    "test": "node tax-logic/test-calculations.js",
+    "start": "npx n8n"
+  },
+  "keywords": [
+    "payroll",
+    "n8n",
+    "tax",
+    "PAYE",
+    "UIF",
+    "NI",
+    "FICA",
+    "gross-to-net",
+    "south-africa",
+    "united-kingdom",
+    "united-states",
+    "automation",
+    "open-source"
+  ],
+  "author": "Tshepiso Jafta",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JustKelly-sys/Dedukto.git"
+  }
+}

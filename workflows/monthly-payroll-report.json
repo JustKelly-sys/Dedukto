@@ -1,0 +1,123 @@
+﻿{
+  "name": "Dedukto - Monthly Payroll Report",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Load sample employees (in production, fetch from Supabase)\nconst employees = [\n  { employee_id: 'EMP-ZA-001', full_name: 'Thabo Mokoena', country: 'ZA', grossMonthlySalary: 55000, age: 32, medicalAid: true, medicalDependents: 1, retirementFundPct: 7.5 },\n  { employee_id: 'EMP-ZA-002', full_name: 'Naledi Dlamini', country: 'ZA', grossMonthlySalary: 35000, age: 29, medicalAid: false, retirementFundPct: 5 },\n  { employee_id: 'EMP-ZA-003', full_name: 'Sipho Nkosi', country: 'ZA', grossMonthlySalary: 18000, age: 38, medicalAid: true, medicalDependents: 3, retirementFundPct: 0 },\n  { employee_id: 'EMP-GB-001', full_name: 'James Whitfield', country: 'GB', grossMonthlySalary: 5000, studentLoanPlan: 'plan2', pensionPct: 5 },\n  { employee_id: 'EMP-GB-002', full_name: 'Priya Sharma', country: 'GB', grossMonthlySalary: 3200, pensionPct: 5 },\n  { employee_id: 'EMP-GB-003', full_name: 'Oliver Chen', country: 'GB', grossMonthlySalary: 8500, studentLoanPlan: 'plan1', pensionPct: 8 },\n  { employee_id: 'EMP-US-001', full_name: 'Sarah Mitchell', country: 'US', grossMonthlySalary: 8000, filingStatus: 'single', state: 'CA', fourOhOnekPct: 6, age: 35 },\n  { employee_id: 'EMP-US-002', full_name: 'Marcus Johnson', country: 'US', grossMonthlySalary: 12000, filingStatus: 'married_jointly', state: 'TX', fourOhOnekPct: 10, age: 42 },\n  { employee_id: 'EMP-US-003', full_name: 'Emily Rodriguez', country: 'US', grossMonthlySalary: 6500, filingStatus: 'single', state: 'NY', fourOhOnekPct: 0, age: 28 },\n];\n\nreturn employees.map(e => ({ json: e }));"
+      },
+      "id": "b1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Load Employees",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.country }}", "rightValue": "ZA", "operator": { "type": "string", "operation": "equals" } }]
+              },
+              "renameOutput": true, "outputKey": "South Africa"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.country }}", "rightValue": "GB", "operator": { "type": "string", "operation": "equals" } }]
+              },
+              "renameOutput": true, "outputKey": "United Kingdom"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [{ "leftValue": "={{ $json.country }}", "rightValue": "US", "operator": { "type": "string", "operation": "equals" } }]
+              },
+              "renameOutput": true, "outputKey": "United States"
+            }
+          ]
+        }
+      },
+      "id": "b1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Route by Country",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nconst brackets = [\n  { min: 0, max: 237100, rate: 0.18, base: 0 },\n  { min: 237101, max: 370500, rate: 0.26, base: 42678 },\n  { min: 370501, max: 512800, rate: 0.31, base: 77362 },\n  { min: 512801, max: 673000, rate: 0.36, base: 121475 },\n  { min: 673001, max: 857900, rate: 0.39, base: 179147 },\n  { min: 857901, max: 1817000, rate: 0.41, base: 251258 },\n  { min: 1817001, max: Infinity, rate: 0.45, base: 644489 },\n];\n\nfor (const item of items) {\n  const emp = item.json;\n  const gross = emp.grossMonthlySalary;\n  const retPct = emp.retirementFundPct || 0;\n  const retMonthly = gross * (retPct / 100);\n  const annualGross = gross * 12;\n  const retDeductible = Math.min(retMonthly * 12, annualGross * 0.275, 350000);\n  const taxable = annualGross - retDeductible;\n  \n  let annualPAYE = 0;\n  for (const b of brackets) {\n    if (taxable <= b.max) { annualPAYE = b.base + (taxable - b.min) * b.rate; break; }\n  }\n  annualPAYE -= 17235;\n  \n  let medCredit = 0;\n  if (emp.medicalAid) {\n    medCredit = 364 + (emp.medicalDependents >= 1 ? 364 : 0) + Math.max(0, (emp.medicalDependents || 0) - 1) * 246;\n    annualPAYE -= medCredit * 12;\n  }\n  annualPAYE = Math.max(0, annualPAYE);\n  \n  const monthlyPAYE = Math.round(annualPAYE / 12 * 100) / 100;\n  const uif = Math.round(Math.min(gross, 17712) * 0.01 * 100) / 100;\n  const retFund = Math.round(retMonthly * 100) / 100;\n  const totalDed = monthlyPAYE + uif + retFund;\n  \n  results.push({ json: {\n    employee_id: emp.employee_id, full_name: emp.full_name,\n    country: 'ZA', currency: 'ZAR', grossSalary: gross,\n    totalDeductions: Math.round(totalDed * 100) / 100,\n    netSalary: Math.round((gross - totalDed) * 100) / 100,\n  }});\n}\nreturn results;"
+      },
+      "id": "b1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Process ZA Payroll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const emp = item.json;\n  const gross = emp.grossMonthlySalary;\n  const annual = gross * 12;\n  \n  let pa = 12570;\n  if (annual > 100000) pa = Math.max(0, 12570 - Math.floor((annual - 100000) / 2));\n  const taxable = Math.max(0, annual - pa);\n  \n  let tax = 0, rem = taxable;\n  tax += Math.min(rem, 37700) * 0.20; rem = Math.max(0, rem - 37700);\n  tax += Math.min(rem, 74870) * 0.40; rem = Math.max(0, rem - 74870);\n  if (rem > 0) tax += rem * 0.45;\n  const monthlyTax = Math.round(tax / 12 * 100) / 100;\n  \n  let ni = 0;\n  if (annual > 12570) {\n    ni += Math.min(annual - 12570, 50270 - 12570) * 0.08;\n    if (annual > 50270) ni += (annual - 50270) * 0.02;\n  }\n  const monthlyNI = Math.round(ni / 12 * 100) / 100;\n  \n  const plans = { plan1: 24990, plan2: 27295, plan4: 31395, plan5: 25000, postgrad: 21000 };\n  const slRate = emp.studentLoanPlan === 'postgrad' ? 0.06 : 0.09;\n  const slThreshold = plans[emp.studentLoanPlan] || 0;\n  const monthlySL = emp.studentLoanPlan && annual > slThreshold ? Math.round((annual - slThreshold) * slRate / 12 * 100) / 100 : 0;\n  \n  const pensionRate = emp.pensionPct ? emp.pensionPct / 100 : 0.05;\n  const qualEarnings = Math.max(0, Math.min(annual, 50270) - 6240);\n  const monthlyPension = Math.round(qualEarnings * pensionRate / 12 * 100) / 100;\n  \n  const totalDed = monthlyTax + monthlyNI + monthlySL + monthlyPension;\n  \n  results.push({ json: {\n    employee_id: emp.employee_id, full_name: emp.full_name,\n    country: 'GB', currency: 'GBP', grossSalary: gross,\n    totalDeductions: Math.round(totalDed * 100) / 100,\n    netSalary: Math.round((gross - totalDed) * 100) / 100,\n  }});\n}\nreturn results;"
+      },
+      "id": "b1b2c3d4-0005-4000-8000-000000000005",
+      "name": "Process GB Payroll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const emp = item.json;\n  const gross = emp.grossMonthlySalary;\n  const annual = gross * 12;\n  const filing = emp.filingStatus || 'single';\n  \n  const k401Pct = emp.fourOhOnekPct || 0;\n  const k401Annual = Math.min(annual * (k401Pct / 100), 23500);\n  const preTax = k401Annual;\n  \n  const stdDed = filing === 'married_jointly' ? 30000 : 15000;\n  const fedTaxable = Math.max(0, annual - preTax - stdDed);\n  const brackets = filing === 'married_jointly'\n    ? [{m:0,x:23850,r:0.10,b:0},{m:23851,x:96950,r:0.12,b:2385},{m:96951,x:206700,r:0.22,b:11157},{m:206701,x:394600,r:0.24,b:35303}]\n    : [{m:0,x:11925,r:0.10,b:0},{m:11926,x:48475,r:0.12,b:1192.5},{m:48476,x:103350,r:0.22,b:5578.5},{m:103351,x:197300,r:0.24,b:17651.5}];\n  \n  let fedTax = 0;\n  for (const b of brackets) {\n    if (fedTaxable <= b.x) {\n      fedTax = b.m === 0 ? fedTaxable * b.r : b.b + (fedTaxable - b.m + 1) * b.r;\n      break;\n    }\n  }\n  const monthlyFed = Math.round(fedTax / 12 * 100) / 100;\n  const monthlySS = Math.round(Math.min(annual - preTax, 176100) * 0.062 / 12 * 100) / 100;\n  let medTax = (annual - preTax) * 0.0145;\n  if (annual - preTax > 200000) medTax += (annual - preTax - 200000) * 0.009;\n  const monthlyMed = Math.round(medTax / 12 * 100) / 100;\n  \n  const states = {\n    TX: { brackets: [], sd: 0 },\n    CA: { sd: 5540, brackets: [{m:0,x:10412,r:0.01},{m:10413,x:24684,r:0.02},{m:24685,x:38959,r:0.04},{m:38960,x:54081,r:0.06},{m:54082,x:68350,r:0.08},{m:68351,x:349137,r:0.093}] },\n    NY: { sd: 8000, brackets: [{m:0,x:8500,r:0.04},{m:8501,x:11700,r:0.045},{m:11701,x:13900,r:0.0525},{m:13901,x:80650,r:0.0585},{m:80651,x:215400,r:0.0625}] }\n  };\n  const sc = states[emp.state] || states.TX;\n  let stateTax = 0;\n  if (sc.brackets.length > 0) {\n    const stTaxable = Math.max(0, annual - preTax - sc.sd);\n    let prev = 0;\n    for (const b of sc.brackets) {\n      if (stTaxable <= b.x) { stateTax += (stTaxable - prev) * b.r; break; }\n      else { stateTax += (b.x - prev) * b.r; prev = b.x; }\n    }\n  }\n  const monthlyState = Math.round(stateTax / 12 * 100) / 100;\n  const monthly401k = Math.round(k401Annual / 12 * 100) / 100;\n  \n  const totalDed = monthlyFed + monthlySS + monthlyMed + monthlyState + monthly401k;\n  \n  results.push({ json: {\n    employee_id: emp.employee_id, full_name: emp.full_name,\n    country: 'US', currency: 'USD', grossSalary: gross,\n    totalDeductions: Math.round(totalDed * 100) / 100,\n    netSalary: Math.round((gross - totalDed) * 100) / 100,\n  }});\n}\nreturn results;"
+      },
+      "id": "b1b2c3d4-0006-4000-8000-000000000006",
+      "name": "Process US Payroll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 640]
+    },
+    {
+      "parameters": { "mode": "append" },
+      "id": "b1b2c3d4-0007-4000-8000-000000000007",
+      "name": "Merge All Payslips",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1140, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payslips = $input.all().map(i => i.json);\nconst payPeriod = new Date().toISOString().slice(0, 7);\n\nconst countries = {};\nfor (const p of payslips) {\n  if (!countries[p.country]) {\n    countries[p.country] = { country: p.country, currency: p.currency, employees: 0, totalGross: 0, totalDeductions: 0, totalNet: 0, payslips: [] };\n  }\n  const c = countries[p.country];\n  c.employees++;\n  c.totalGross += p.grossSalary;\n  c.totalDeductions += p.totalDeductions;\n  c.totalNet += p.netSalary;\n  c.payslips.push({ employee_id: p.employee_id, full_name: p.full_name, gross: p.grossSalary, deductions: p.totalDeductions, net: p.netSalary });\n}\n\nfor (const key of Object.keys(countries)) {\n  const c = countries[key];\n  c.totalGross = Math.round(c.totalGross * 100) / 100;\n  c.totalDeductions = Math.round(c.totalDeductions * 100) / 100;\n  c.totalNet = Math.round(c.totalNet * 100) / 100;\n}\n\nconst totalEmployees = payslips.length;\n\nreturn [{ json: {\n  reportTitle: 'Monthly Payroll Report - ' + payPeriod,\n  payPeriod,\n  generatedAt: new Date().toISOString(),\n  totalEmployees,\n  byCountry: countries,\n  summary: {\n    countriesProcessed: Object.keys(countries).length,\n    totalEmployees,\n  }\n}}];"
+      },
+      "id": "b1b2c3d4-0008-4000-8000-000000000008",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 420]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Load Employees", "type": "main", "index": 0 }]] },
+    "Load Employees": { "main": [[{ "node": "Route by Country", "type": "main", "index": 0 }]] },
+    "Route by Country": {
+      "main": [
+        [{ "node": "Process ZA Payroll", "type": "main", "index": 0 }],
+        [{ "node": "Process GB Payroll", "type": "main", "index": 0 }],
+        [{ "node": "Process US Payroll", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process ZA Payroll": { "main": [[{ "node": "Merge All Payslips", "type": "main", "index": 0 }]] },
+    "Process GB Payroll": { "main": [[{ "node": "Merge All Payslips", "type": "main", "index": 0 }]] },
+    "Process US Payroll": { "main": [[{ "node": "Merge All Payslips", "type": "main", "index": 0 }]] },
+    "Merge All Payslips": { "main": [[{ "node": "Generate Report", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "payroll" }, { "name": "report" }, { "name": "monthly" }]
+}

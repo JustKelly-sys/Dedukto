@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dedukto - Payroll Without Borders</title>
+  <meta name="description" content="Open-source multi-country payroll calculation engine. Real-time gross-to-net calculations for South Africa, United Kingdom, and United States.">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <nav id="main-nav">
+    <a href="#hero" class="nav-logo">
+      <img src="logo.png" alt="Dedukto" class="nav-logo-img">
+      <span class="nav-logo-text">Dedukto</span>
+    </a>
+    <div class="nav-center">
+      <a href="#demo" class="active">Demo</a>
+      <a href="#jurisdictions">Jurisdictions</a>
+      <a href="https://github.com/JustKelly-sys/Dedukto" target="_blank" rel="noopener">Github</a>
+    </div>
+    <button class="nav-cta" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Get Started</button>
+  </nav>
+
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <p class="hero-label-top">OPEN-SOURCE PAYROLL ENGINE</p>
+      <h1 class="hero-title">Payroll without<br><span class="hero-title-accent">borders.</span></h1>
+      <p class="hero-subtitle">Open-source gross-to-net calculations across <strong>South Africa</strong>, <strong>United Kingdom</strong>, and <strong>United States</strong>. Built on n8n.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Try Demo <span class="material-symbols-outlined">arrow_forward</span></button>
+        <button class="btn-secondary" onclick="document.getElementById('jurisdictions').scrollIntoView({behavior:'smooth'})">View Jurisdictions</button>
+      </div>
+    </div>
+    <div class="hero-footer">
+      <span class="hero-label">DEDUKTO &copy;2026</span>
+      <span class="hero-label">EXPLORE <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">arrow_downward</span></span>
+    </div>
+  </section>
+
+  <section id="demo">
+    <div class="section-header">
+      <div class="section-header-row">
+        <div>
+          <h2 class="section-title">Payroll <span class="section-title-accent">Workspace</span></h2>
+          <p class="section-subtitle">A real-time overview of your distributed workforce. Manage local compliance and multi-country tax calculations with surgical precision.</p>
+        </div>
+        <div class="demo-controls">
+          <button id="btn-add-employee" class="btn-secondary" onclick="showAddModal()"><span class="material-symbols-outlined" style="font-size:18px">person_add</span> Add Employee</button>
+          <button id="btn-run-payroll" class="btn-primary" style="padding:12px 28px;font-size:14px" onclick="runPayroll()"><span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">play_arrow</span> Run Payroll</button>
+        </div>
+      </div>
+      <p class="section-meta" id="demo-meta">9 SAMPLE EMPLOYEES &middot; 3 COUNTRIES &middot; REAL TAX BRACKETS</p>
+    </div>
+    <div class="section-content">
+      <div class="stats-bento" id="stats-bento">
+        <div class="stat-card"><p class="stat-label">Active Staff</p><h3 class="stat-value" id="stat-staff">9</h3><div class="stat-sub"><span class="material-symbols-outlined" style="font-size:16px">trending_up</span><span id="stat-staff-sub">3 countries</span></div></div>
+        <div class="stat-card"><p class="stat-label">Next Run</p><h3 class="stat-value" id="stat-next-run">Ready</h3><p class="stat-sub-muted" id="stat-run-sub">Click Run Payroll to process</p></div>
+        <div class="stat-card"><p class="stat-label">Total Monthly Gross</p><h3 class="stat-value" id="stat-total-gross">&mdash;</h3><div class="stat-icon-bg"><span class="material-symbols-outlined">payments</span></div></div>
+      </div>
+      <div id="employee-grid" class="employee-grid"></div>
+    </div>
+  </section>
+
+  <section id="results" class="hidden-section">
+    <div class="section-header">
+      <div class="section-header-row">
+        <div>
+          <h2 class="section-title">Payslips</h2>
+          <p class="section-meta" id="results-meta"></p>
+        </div>
+      </div>
+    </div>
+    <div class="section-content">
+      <div id="processing-indicator" class="processing hidden"><div class="processing-dot"></div><span id="processing-text">Processing...</span></div>
+      <div id="payslip-layout" class="payslip-layout" style="display:none">
+        <div class="payslip-sidebar">
+          <p class="payslip-sidebar-label">Recent Records</p>
+          <div id="payslip-sidebar-list"></div>
+        </div>
+        <div id="payslip-detail-panel"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="report" class="hidden-section">
+    <div class="section-header"><div class="section-header-row"><div><h2 class="section-title">Report</h2><p class="section-meta" id="report-meta"></p></div></div></div>
+    <div class="section-content"><div id="report-summary" class="report-summary"></div><div id="report-countries" class="report-countries"></div></div>
+  </section>
+
+  <section id="jurisdictions">
+    <div class="section-header"><div class="section-header-row"><div><h2 class="section-title">Global Payroll<br><span class="section-title-accent">Architecture.</span></h2><p class="section-subtitle">Dedukto provides a precision-engineered engine for multi-country tax compliance, mapping complex local regulations into a unified digital framework.</p></div></div></div>
+    <div class="section-content">
+      <div class="jurisdiction-grid">
+        <div class="jurisdiction-card">
+          <img src="https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=600&h=400&fit=crop&q=80" alt="Cape Town skyline" class="jurisdiction-img" loading="lazy">
+          <div class="jurisdiction-body">
+            <div class="jurisdiction-region">REGION: AFRICA</div><h3>South Africa</h3>
+            <ul>
+              <li><span class="material-symbols-outlined">receipt_long</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">PAYE</div><div class="jurisdiction-item-desc">Progressive personal income tax deducted directly from employee remuneration based on SARS tables.</div></div></li>
+              <li><span class="material-symbols-outlined">shield</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">UIF</div><div class="jurisdiction-item-desc">Unemployment Insurance Fund contributions capped at statutory monthly limits for both parties.</div></div></li>
+              <li><span class="material-symbols-outlined">school</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">SDL</div><div class="jurisdiction-item-desc">Skills Development Levy of 1% for companies with an annual payroll exceeding ZAR 500k.</div></div></li>
+            </ul>
+            <a href="https://github.com/JustKelly-sys/Dedukto/blob/main/tax-logic/south-africa.js" target="_blank" class="link-source">View technical docs &rarr;</a>
+          </div>
+        </div>
+        <div class="jurisdiction-card">
+          <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&h=400&fit=crop&q=80" alt="London skyline" class="jurisdiction-img" loading="lazy">
+          <div class="jurisdiction-body">
+            <div class="jurisdiction-region">REGION: EUROPE</div><h3>United Kingdom</h3>
+            <ul>
+              <li><span class="material-symbols-outlined">account_balance</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">INCOME TAX</div><div class="jurisdiction-item-desc">Real-Time Information (RTI) compliant tax calculation using HMRC tax codes.</div></div></li>
+              <li><span class="material-symbols-outlined">favorite</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">NATIONAL INSURANCE</div><div class="jurisdiction-item-desc">Class 1 contributions for employees and employers, funding state benefits and the NHS.</div></div></li>
+              <li><span class="material-symbols-outlined">school</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">STUDENT LOAN</div><div class="jurisdiction-item-desc">Dynamic calculation based on Plan types (1, 2, 4, or 5) and Post-Graduate Loan thresholds.</div></div></li>
+            </ul>
+            <a href="https://github.com/JustKelly-sys/Dedukto/blob/main/tax-logic/united-kingdom.js" target="_blank" class="link-source">View technical docs &rarr;</a>
+          </div>
+        </div>
+        <div class="jurisdiction-card">
+          <img src="https://images.unsplash.com/photo-1534430480872-3498386e7856?w=600&h=400&fit=crop&q=80" alt="New York skyline" class="jurisdiction-img" loading="lazy">
+          <div class="jurisdiction-body">
+            <div class="jurisdiction-region">REGION: NORTH AMERICA</div><h3>United States</h3>
+            <ul>
+              <li><span class="material-symbols-outlined">gavel</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">FEDERAL TAX</div><div class="jurisdiction-item-desc">W-4 based federal withholding using IRS Circular E Publication 15-T computational methods.</div></div></li>
+              <li><span class="material-symbols-outlined">security</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">SOCIAL SECURITY</div><div class="jurisdiction-item-desc">OASDI tax at 6.2% applied up to the annual Social Security wage base.</div></div></li>
+              <li><span class="material-symbols-outlined">local_hospital</span><div class="jurisdiction-item-content"><div class="jurisdiction-item-label">MEDICARE</div><div class="jurisdiction-item-desc">Standard 1.45% tax with automated tracking for Additional Medicare Tax thresholds.</div></div></li>
+            </ul>
+            <a href="https://github.com/JustKelly-sys/Dedukto/blob/main/tax-logic/united-states.js" target="_blank" class="link-source">View technical docs &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="footer-content">
+      <div class="footer-left"><img src="logo.png" alt="" class="footer-logo-img"><span class="footer-brand">Dedukto</span></div>
+      <span class="footer-copy">&copy; 2026 DEDUKTO OPEN SOURCE PAYROLL ENGINE. BUILT FOR THE DIGITAL ARCHITECT.</span>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/tshepisojafta/" target="_blank">LinkedIn</a>
+        <a href="https://github.com/JustKelly-sys/Dedukto" target="_blank">GitHub</a>
+        <a href="https://github.com/JustKelly-sys/LexFlow" target="_blank">LexFlow</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="employee-modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header"><h3 id="modal-title">Add Employee</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+      <form id="employee-form" onsubmit="saveEmployee(event)">
+        <div class="form-row"><div class="form-group"><label for="emp-name">Full Name</label><input type="text" id="emp-name" required placeholder="e.g. Thabo Mokoena"></div><div class="form-group"><label for="emp-position">Position / Title</label><input type="text" id="emp-position" placeholder="e.g. Software Engineer"></div></div>
+        <div class="form-row"><div class="form-group"><label for="emp-country">Country</label><select id="emp-country" required onchange="updateCountryFields()"><option value="ZA">South Africa</option><option value="GB">United Kingdom</option><option value="US">United States</option></select></div><div class="form-group"><label for="emp-salary">Gross Monthly Salary</label><input type="number" id="emp-salary" required min="1" step="0.01" placeholder="55000"></div></div>
+        <div class="form-row"><div class="form-group"><label for="emp-age">Age</label><input type="number" id="emp-age" value="30" min="16" max="80"></div><div class="form-group"><label for="emp-department">Department</label><input type="text" id="emp-department" placeholder="e.g. Engineering"></div></div>
+        <div id="fields-za" class="country-fields"><div class="form-row"><div class="form-group"><label for="emp-retirement">Retirement Fund %</label><input type="number" id="emp-retirement" value="0" min="0" max="27.5" step="0.5"></div><div class="form-group"><label for="emp-medical">Medical Aid</label><select id="emp-medical"><option value="0">No</option><option value="1">Yes</option></select></div></div><div class="form-row"><div class="form-group"><label for="emp-med-deps">Medical Dependents</label><input type="number" id="emp-med-deps" value="0" min="0" max="10"></div></div></div>
+        <div id="fields-gb" class="country-fields hidden"><div class="form-row"><div class="form-group"><label for="emp-student-loan">Student Loan Plan</label><select id="emp-student-loan"><option value="">None</option><option value="plan1">Plan 1</option><option value="plan2">Plan 2</option><option value="plan4">Plan 4 (Scotland)</option><option value="plan5">Plan 5</option><option value="postgrad">Postgraduate</option></select></div><div class="form-group"><label for="emp-pension">Pension %</label><input type="number" id="emp-pension" value="5" min="0" max="100" step="0.5"></div></div></div>
+        <div id="fields-us" class="country-fields hidden"><div class="form-row"><div class="form-group"><label for="emp-filing">Filing Status</label><select id="emp-filing"><option value="single">Single</option><option value="married_jointly">Married Filing Jointly</option></select></div><div class="form-group"><label for="emp-state">State</label><select id="emp-state"><option value="TX">Texas (No State Tax)</option><option value="CA">California</option><option value="NY">New York</option><option value="FL">Florida (No State Tax)</option><option value="WA">Washington (No State Tax)</option></select></div></div><div class="form-row"><div class="form-group"><label for="emp-401k">401(k) Contribution %</label><input type="number" id="emp-401k" value="0" min="0" max="100" step="0.5"></div></div></div>
+        <input type="hidden" id="emp-edit-index" value="-1">
+        <div class="form-actions"><button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary" style="padding:12px 24px;font-size:14px">Save Employee</button></div>
+      </form>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

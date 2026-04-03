@@ -164,6 +164,53 @@ Employee Data → Validate → Route by Country → Calculate Tax → Payslip
 
 ---
 
+
+## n8n Workflow
+
+Dedukto's backend is a visual n8n automation workflow. Here's what it looks like:
+
+<p align="center">
+  <img src="docs/n8n-workflow.png" alt="Dedukto n8n Workflow" width="800">
+</p>
+
+> **Recruiters:** You don't need to install anything to view this. The workflow JSON is in [`workflows/global-payroll-processor.json`](workflows/global-payroll-processor.json) and can be imported into any [n8n instance](https://n8n.io) or viewed directly on GitHub.
+
+### Workflow Flow (Mermaid)
+
+```mermaid
+graph LR
+    A["Webhook<br/>Payroll Intake"] --> B["Code<br/>Validate Fields"]
+    B --> C{"If<br/>Is Valid?"}
+    C -->|Invalid| D["Response<br/>Return Error"]
+    C -->|Valid| E["Switch<br/>Route by Country"]
+    E -->|ZA| F["Code<br/>Calculate ZA Tax<br/><i>PAYE + UIF + SDL</i>"]
+    E -->|GB| G["Code<br/>Calculate GB Tax<br/><i>Income Tax + NI</i>"]
+    E -->|US| H["Code<br/>Calculate US Tax<br/><i>Federal + State + FICA</i>"]
+    F --> I["Merge<br/>Merge Payslips"]
+    G --> I
+    H --> I
+    I --> J["Response<br/>Return Payslips"]
+
+    style A fill:#2d6a4f,stroke:#40916c,color:#fff
+    style D fill:#9d0208,stroke:#d00000,color:#fff
+    style E fill:#7b2cbf,stroke:#9d4edd,color:#fff
+    style F fill:#fb8500,stroke:#ffb703,color:#fff
+    style G fill:#fb8500,stroke:#ffb703,color:#fff
+    style H fill:#fb8500,stroke:#ffb703,color:#fff
+    style J fill:#2d6a4f,stroke:#40916c,color:#fff
+```
+
+### How to View the Workflow
+
+| Method | Effort | Link |
+|--------|--------|------|
+| **View diagram above** | Zero | Scroll up |
+| **View JSON on GitHub** | Zero | [`global-payroll-processor.json`](workflows/global-payroll-processor.json) |
+| **Import into n8n Cloud** | 2 min | Sign up at [n8n.io](https://n8n.io), import the JSON |
+| **Run locally** | 5 min | `npx n8n` then import via UI |
+
+---
+
 ## Payslip Output
 
 Every calculation returns a structured payslip:

@@ -197,7 +197,7 @@ function renderEmployees() {
     card.innerHTML =
       '<div class="card-top">' +
         '<div class="card-identity">' +
-          '<div class="card-avatar">' + initials + '</div>' +
+          '<div class="card-avatar ">' + initials + '</div>' +
           '<div><div class="card-name">' + emp.full_name + '</div>' +
           (emp.position ? '<div class="card-position">' + emp.position + '</div>' : '') +
           '</div>' +
@@ -305,7 +305,7 @@ function renderPayslips() {
     card.innerHTML =
       '<div class="ps-card-top">' +
         '<div class="ps-card-identity">' +
-          '<div class="ps-card-avatar">' + initials + '</div>' +
+          '<div class="ps-card-avatar ">' + initials + '</div>' +
           '<div><div class="ps-card-name">' + result.full_name + '</div>' +
           (result.position ? '<div class="ps-card-position">' + result.position + '</div>' : '') +
           '</div>' +
@@ -337,16 +337,22 @@ function renderReport() {
     '<div class="report-stat"><div class="report-stat-value">&lt; 1s</div><div class="report-stat-label">PROCESSING TIME</div></div>';
   const el = document.getElementById("report-countries");
   el.innerHTML = "";
+  var flagSvgs = {
+    ZA: '<svg class="report-flag-icon" viewBox="0 0 32 24"><rect width="32" height="24" rx="3" fill="#1b1b1d"/><polygon points="0,0 16,12 0,24" fill="#34d399" opacity="0.5"/><line x1="0" y1="4" x2="32" y2="4" stroke="#34d399" stroke-width="2" opacity="0.3"/><line x1="0" y1="12" x2="32" y2="12" stroke="#fff" stroke-width="1.5" opacity="0.2"/><line x1="0" y1="20" x2="32" y2="20" stroke="#60a5fa" stroke-width="2" opacity="0.3"/></svg>',
+    GB: '<svg class="report-flag-icon" viewBox="0 0 32 24"><rect width="32" height="24" rx="3" fill="#1b1b1d"/><line x1="0" y1="12" x2="32" y2="12" stroke="#60a5fa" stroke-width="4" opacity="0.4"/><line x1="16" y1="0" x2="16" y2="24" stroke="#60a5fa" stroke-width="4" opacity="0.4"/><line x1="0" y1="12" x2="32" y2="12" stroke="#f87171" stroke-width="1.5" opacity="0.5"/><line x1="16" y1="0" x2="16" y2="24" stroke="#f87171" stroke-width="1.5" opacity="0.5"/></svg>',
+    US: '<svg class="report-flag-icon" viewBox="0 0 32 24"><rect width="32" height="24" rx="3" fill="#1b1b1d"/><rect x="0" y="0" width="14" height="10" fill="#fb923c" opacity="0.15"/><line x1="0" y1="2" x2="32" y2="2" stroke="#fb923c" stroke-width="1.5" opacity="0.3"/><line x1="0" y1="6" x2="32" y2="6" stroke="#fb923c" stroke-width="1.5" opacity="0.3"/><line x1="0" y1="10" x2="32" y2="10" stroke="#fb923c" stroke-width="1.5" opacity="0.3"/><line x1="0" y1="14" x2="32" y2="14" stroke="#fb923c" stroke-width="1.5" opacity="0.3"/><line x1="0" y1="18" x2="32" y2="18" stroke="#fb923c" stroke-width="1.5" opacity="0.3"/></svg>'
+  };
   for (const [code, data] of Object.entries(byCountry)) {
     const c = COUNTRIES[code];
     const card = document.createElement("div");
     card.className = "report-country-card";
+    var flag = flagSvgs[code] || '';
     card.innerHTML =
-      '<div class="report-country-header"><span class="report-country-flag">' + c.code + '</span><span class="report-country-name">' + c.name + '</span><span class="report-country-count">' + data.employees + ' EMPLOYEES</span></div>' +
+      '<div class="report-country-header">' + flag + '<span class="report-country-name">' + c.name + '</span><span class="report-country-count">' + data.employees + ' EMPLOYEES</span></div>' +
       '<div class="report-line"><span class="report-line-label">Total Gross</span><span class="report-line-value">' + formatCurrency(data.totalGross, code) + '</span></div>' +
       '<div class="report-line"><span class="report-line-label">Total Deductions</span><span class="report-line-value" style="color:#f87171">-' + formatCurrency(data.totalDeductions, code) + '</span></div>' +
       '<div class="report-line"><span class="report-line-label">Total Net Payroll</span><span class="report-line-value" style="color:#22c55e">' + formatCurrency(data.totalNet, code) + '</span></div>' +
-      '<div class="report-line" style="border-top:1px solid #1e1e2e;margin-top:8px;padding-top:12px"><span class="report-line-label">Total Employer Cost</span><span class="report-line-value">' + formatCurrency(data.totalEmployerCost, code) + '</span></div>';
+      '<div class="report-line" style="border-top:1px solid rgba(255,255,255,0.06);margin-top:8px;padding-top:12px"><span class="report-line-label">Total Employer Cost</span><span class="report-line-value">' + formatCurrency(data.totalEmployerCost, code) + '</span></div>';
     el.appendChild(card);
   }
   document.getElementById("report-meta").innerHTML = new Date().toISOString().slice(0, 7) + "<br>MONTHLY SUMMARY";
@@ -398,7 +404,7 @@ function downloadPayslip(index) {
     '</style></head><body>' +
     '<div class="payslip">' +
       '<div class="header">' +
-        '<div><div class="logo">Dedukto</div><div class="logo-sub">Payroll Without Borders</div></div>' +
+        '<div style="display:flex;align-items:center;gap:8px"><img src="logo.png" style="width:28px;height:28px;border-radius:6px"><div class="logo">Dedukto</div></div><div class="logo-sub">Payroll Without Borders</div>' +
         '<div class="period"><strong>' + period + '</strong>Monthly Payslip<br>' + c.name + '</div>' +
       '</div>' +
       '<div class="employee-info">' +
@@ -554,7 +560,7 @@ function initScrollAnimations() {
     nav.style.borderBottomColor = window.scrollY > 100 ? "rgba(30,30,46,0.8)" : "rgba(30,30,46,0.3)";
     if (heroBg) {
       var scrollPct = Math.min(window.scrollY / 600, 1);
-      heroBg.style.filter = "blur(" + (scrollPct * 8) + "px)";
+      heroBg.style.filter = "blur(" + (1 + scrollPct * 7) + "px)";
       heroBg.style.opacity = String(0.85 - scrollPct * 0.3);
     }
   });

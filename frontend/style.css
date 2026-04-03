@@ -81,7 +81,7 @@ input, select { font-family: var(--font-body); }
 }
 .nav-cta {
   font-family: var(--font-headline); font-weight: 600; font-size: 13px;
-  padding: 8px 18px; background: var(--primary-container); color: #fff;
+  padding: 8px 18px; background: rgba(148,125,255,0.7); backdrop-filter: blur(8px); color: #fff;
   border: none; border-radius: 8px; transition: all 0.2s; letter-spacing: -0.01em;
 }
 .nav-cta:hover { opacity: 0.9; }
@@ -90,7 +90,7 @@ input, select { font-family: var(--font-body); }
 /* BUTTONS */
 .btn-primary {
   display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px;
-  background: var(--primary-container); color: #fff; border: none; border-radius: 8px;
+  background: rgba(148,125,255,0.7); backdrop-filter: blur(8px); color: #fff; border: none; border-radius: 8px;
   font-family: var(--font-headline); font-size: 15px; font-weight: 600;
   letter-spacing: -0.01em; transition: all 0.3s var(--ease-out-expo);
 }
@@ -98,7 +98,7 @@ input, select { font-family: var(--font-body); }
 .btn-primary:active { transform: scale(0.97); }
 .btn-secondary {
   display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
-  background: transparent; color: var(--on-surface-variant);
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); color: var(--on-surface-variant);
   border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
   font-family: var(--font-headline); font-size: 14px; font-weight: 500;
   transition: all 0.3s;
@@ -118,8 +118,8 @@ input, select { font-family: var(--font-body); }
 }
 .hero-bg {
   position: fixed; inset: 0;
-  background-image: url("hero-bg.svg");
-  background-size: cover; background-position: center;
+  background-image: url("hero-bg.png");
+  background-size: cover; background-position: center; image-rendering: auto; filter: blur(1px);
   opacity: 0.85; transition: filter 0.1s linear, opacity 0.1s linear;
 }
 .hero-bg::after {
@@ -529,3 +529,26 @@ section { padding: 80px 32px; position: relative; z-index: 1; }
 /* Payslip sidebar header */
 .payslip-sidebar-header { margin-bottom: 24px; }
 .payslip-sidebar-title { font-family: var(--font-headline); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+/* Country-coded avatar colors */
+.card-avatar.country-za { background: rgba(52,211,153,0.12); color: #34d399; border-color: rgba(52,211,153,0.2); }
+.card-avatar.country-gb { background: rgba(96,165,250,0.12); color: #60a5fa; border-color: rgba(96,165,250,0.2); }
+.card-avatar.country-us { background: rgba(251,146,60,0.12); color: #fb923c; border-color: rgba(251,146,60,0.2); }
+
+/* Payslip sidebar avatars */
+.ps-card-avatar.country-za { background: rgba(52,211,153,0.15); color: #34d399; }
+.ps-card-avatar.country-gb { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.ps-card-avatar.country-us { background: rgba(251,146,60,0.15); color: #fb923c; }
+
+/* Payslip detail panel avatar */
+.payslip-avatar.country-za { background: rgba(52,211,153,0.15); color: #34d399; }
+.payslip-avatar.country-gb { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.payslip-avatar.country-us { background: rgba(251,146,60,0.15); color: #fb923c; }
+
+/* Report country flag icons */
+.report-flag-icon { width: 32px; height: 24px; border-radius: 4px; flex-shrink: 0; }
+
+/* Report alignment */
+.report-countries { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.report-country-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.report-country-name { font-family: var(--font-headline); font-size: 18px; font-weight: 700; }
+.report-country-count { margin-left: auto; font-size: 10px; letter-spacing: 0.2em; color: var(--outline); font-weight: 600; }

@@ -118,7 +118,7 @@ input, select { font-family: var(--font-body); }
 }
 .hero-bg {
   position: fixed; inset: 0;
-  background-image: url("hero-bg.png");
+  background-image: url("hero-bg.svg");
   background-size: cover; background-position: center;
   opacity: 0.85; transition: filter 0.1s linear, opacity 0.1s linear;
 }
@@ -168,11 +168,8 @@ section { padding: 80px 32px; position: relative; z-index: 1; }
 .section-subtitle { font-size: 18px; color: var(--on-surface-variant); font-weight: 300; line-height: 1.6; max-width: 600px; }
 .section-content { max-width: var(--max-width); margin: 0 auto; width: 100%; }
 .hidden-section { display: none; }
-#results .section-header { margin-bottom: 16px; }
-#results .section-title { font-size: 24px; }
-#results .section-content { max-width: 100%; padding: 0; }
-#results { padding-left: 0; padding-right: 0; }
-#results .payslip-layout { padding: 0 48px; }
+#results .section-content { max-width: 100%; }
+#results .payslip-layout { width: 100%; }
 
 /* DEMO CONTROLS */
 .demo-controls { display: flex; gap: 16px; margin-bottom: 48px; flex-wrap: wrap; }
@@ -180,8 +177,9 @@ section { padding: 80px 32px; position: relative; z-index: 1; }
 /* STATS BENTO */
 .stats-bento { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 24px; margin-bottom: 48px; }
 .stat-card {
-  padding: 32px; border-radius: 12px; background: var(--surface-container-low);
-  border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden;
+  padding: 32px; border-radius: 12px; background: rgba(27,27,29,0.5);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.06); position: relative; overflow: hidden;
 }
 .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--outline); margin-bottom: 8px; font-weight: 700; }
 .stat-value { font-family: var(--font-headline); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
@@ -193,13 +191,14 @@ section { padding: 80px 32px; position: relative; z-index: 1; }
 /* EMPLOYEE GRID */
 .employee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
 .employee-card {
-  background: var(--surface-container-high); border-radius: 12px; padding: 32px;
-  position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(42,42,44,0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px; padding: 32px;
+  position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);
   opacity: 0; transform: translateY(20px);
   animation: card-enter 0.6s var(--ease-out-expo) forwards;
   transition: all 0.3s;
 }
-.employee-card:hover { background: var(--surface-container-highest); }
+.employee-card:hover { background: rgba(53,52,55,0.5); }
 @keyframes card-enter { to { opacity: 1; transform: translateY(0); } }
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
 .card-identity { display: flex; gap: 12px; align-items: center; }
@@ -419,11 +418,11 @@ section { padding: 80px 32px; position: relative; z-index: 1; }
 .payslip-sidebar-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.35em; color: var(--outline); margin-bottom: 16px; font-weight: 600; }
 .ps-card {
   padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.3s var(--ease-out-expo);
-  background: var(--surface-container-low); position: relative;
+  background: rgba(27,27,29,0.5); backdrop-filter: blur(12px); position: relative;
 }
-.ps-card:hover { background: var(--surface-container-high); }
+.ps-card:hover { background: rgba(42,42,44,0.6); }
 .ps-card.active {
-  background: var(--surface-container-high);
+  background: rgba(42,42,44,0.7);
   box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 0 0 1.5px rgba(202,190,255,0.3);
 }
 .ps-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
@@ -527,3 +526,6 @@ section { padding: 80px 32px; position: relative; z-index: 1; }
 .payslip-sidebar::-webkit-scrollbar-track { background: transparent; }
 .payslip-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 .payslip-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+/* Payslip sidebar header */
+.payslip-sidebar-header { margin-bottom: 24px; }
+.payslip-sidebar-title { font-family: var(--font-headline); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }

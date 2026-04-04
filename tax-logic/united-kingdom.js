@@ -103,6 +103,9 @@ function calculatePension(annualGross, employeePct = null, employerPct = null) {
 }
 
 function calculateUnitedKingdom(employee) {
+  if (!employee.grossMonthlySalary || employee.grossMonthlySalary <= 0) {
+    throw new Error('Gross monthly salary must be positive');
+  }
   const {
     grossMonthlySalary, studentLoanPlan = null, pensionPct = null,
     employerPensionPct = null, payPeriod = new Date().toISOString().slice(0, 7),

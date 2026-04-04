@@ -29,7 +29,5 @@
     "url": "https://github.com/JustKelly-sys/Dedukto.git"
   },
   "dependencies": {
-    "sharp": "^0.34.5",
-    "three": "^0.183.2"
   }
 }

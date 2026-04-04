@@ -9,21 +9,21 @@
 const FEDERAL_BRACKETS = {
   single: [
     { min: 0,       max: 11925,   rate: 0.10, base: 0 },
-    { min: 11926,   max: 48475,   rate: 0.12, base: 1192.50 },
-    { min: 48476,   max: 103350,  rate: 0.22, base: 5578.50 },
-    { min: 103351,  max: 197300,  rate: 0.24, base: 17651.50 },
-    { min: 197301,  max: 250525,  rate: 0.32, base: 40199.50 },
-    { min: 250526,  max: 626350,  rate: 0.35, base: 57231.50 },
-    { min: 626351,  max: Infinity, rate: 0.37, base: 188769.75 },
+    { min: 11925,   max: 48475,   rate: 0.12, base: 1192.50 },
+    { min: 48475,   max: 103350,  rate: 0.22, base: 5578.50 },
+    { min: 103350,  max: 197300,  rate: 0.24, base: 17651.50 },
+    { min: 197300,  max: 250525,  rate: 0.32, base: 40199.50 },
+    { min: 250525,  max: 626350,  rate: 0.35, base: 57231.50 },
+    { min: 626350,  max: Infinity, rate: 0.37, base: 188769.75 },
   ],
   married_jointly: [
     { min: 0,       max: 23850,   rate: 0.10, base: 0 },
-    { min: 23851,   max: 96950,   rate: 0.12, base: 2385.00 },
-    { min: 96951,   max: 206700,  rate: 0.22, base: 11157.00 },
-    { min: 206701,  max: 394600,  rate: 0.24, base: 35303.00 },
-    { min: 394601,  max: 501050,  rate: 0.32, base: 80399.00 },
-    { min: 501051,  max: 751600,  rate: 0.35, base: 114463.00 },
-    { min: 751601,  max: Infinity, rate: 0.37, base: 202155.50 },
+    { min: 23850,   max: 96950,   rate: 0.12, base: 2385.00 },
+    { min: 96950,   max: 206700,  rate: 0.22, base: 11157.00 },
+    { min: 206700,  max: 394600,  rate: 0.24, base: 35303.00 },
+    { min: 394600,  max: 501050,  rate: 0.32, base: 80399.00 },
+    { min: 501050,  max: 751600,  rate: 0.35, base: 114463.00 },
+    { min: 751600,  max: Infinity, rate: 0.37, base: 202155.50 },
   ],
 };
 
@@ -39,21 +39,21 @@ const STATE_TAX = {
   CA: {
     name: "California", standardDeduction: 5540,
     brackets: [
-      { min: 0, max: 10412, rate: 0.01 }, { min: 10413, max: 24684, rate: 0.02 },
-      { min: 24685, max: 38959, rate: 0.04 }, { min: 38960, max: 54081, rate: 0.06 },
-      { min: 54082, max: 68350, rate: 0.08 }, { min: 68351, max: 349137, rate: 0.093 },
-      { min: 349138, max: 418961, rate: 0.103 }, { min: 418962, max: 698271, rate: 0.113 },
-      { min: 698272, max: Infinity, rate: 0.133 },
+      { min: 0, max: 10412, rate: 0.01 }, { min: 10412, max: 24684, rate: 0.02 },
+      { min: 24684, max: 38959, rate: 0.04 }, { min: 38959, max: 54081, rate: 0.06 },
+      { min: 54081, max: 68350, rate: 0.08 }, { min: 68350, max: 349137, rate: 0.093 },
+      { min: 349137, max: 418961, rate: 0.103 }, { min: 418961, max: 698271, rate: 0.113 },
+      { min: 698271, max: Infinity, rate: 0.133 },
     ],
   },
   NY: {
     name: "New York", standardDeduction: 8000,
     brackets: [
-      { min: 0, max: 8500, rate: 0.04 }, { min: 8501, max: 11700, rate: 0.045 },
-      { min: 11701, max: 13900, rate: 0.0525 }, { min: 13901, max: 80650, rate: 0.0585 },
-      { min: 80651, max: 215400, rate: 0.0625 }, { min: 215401, max: 1077550, rate: 0.0685 },
-      { min: 1077551, max: 5000000, rate: 0.0965 }, { min: 5000001, max: 25000000, rate: 0.103 },
-      { min: 25000001, max: Infinity, rate: 0.109 },
+      { min: 0, max: 8500, rate: 0.04 }, { min: 8500, max: 11700, rate: 0.045 },
+      { min: 11700, max: 13900, rate: 0.0525 }, { min: 13900, max: 80650, rate: 0.0585 },
+      { min: 80650, max: 215400, rate: 0.0625 }, { min: 215400, max: 1077550, rate: 0.0685 },
+      { min: 1077550, max: 5000000, rate: 0.0965 }, { min: 5000000, max: 25000000, rate: 0.103 },
+      { min: 25000000, max: Infinity, rate: 0.109 },
     ],
   },
 };
@@ -72,7 +72,7 @@ function calculateFederalTax(annualGross, filingStatus, preTaxDeductions) {
     if (taxableIncome <= bracket.max) {
       tax = bracket.min === 0
         ? taxableIncome * bracket.rate
-        : bracket.base + (taxableIncome - bracket.min + 1) * bracket.rate;
+        : bracket.base + (taxableIncome - bracket.min) * bracket.rate;
       break;
     }
   }
@@ -130,6 +130,9 @@ function calculate401k(annualGross, contributionPct, age) {
 }
 
 function calculateUnitedStates(employee) {
+  if (!employee.grossMonthlySalary || employee.grossMonthlySalary <= 0) {
+    throw new Error('Gross monthly salary must be positive');
+  }
   const {
     grossMonthlySalary, filingStatus = "single", state = "TX",
     fourOhOnekPct = 0, age = 30, payPeriod = new Date().toISOString().slice(0, 7),

@@ -8,12 +8,12 @@
 
 const PAYE_BRACKETS = [
   { min: 0,        max: 237100,   rate: 0.18, base: 0 },
-  { min: 237101,   max: 370500,   rate: 0.26, base: 42678 },
-  { min: 370501,   max: 512800,   rate: 0.31, base: 77362 },
-  { min: 512801,   max: 673000,   rate: 0.36, base: 121475 },
-  { min: 673001,   max: 857900,   rate: 0.39, base: 179147 },
-  { min: 857901,   max: 1817000,  rate: 0.41, base: 251258 },
-  { min: 1817001,  max: Infinity, rate: 0.45, base: 644489 },
+  { min: 237100,   max: 370500,   rate: 0.26, base: 42678 },
+  { min: 370500,   max: 512800,   rate: 0.31, base: 77362 },
+  { min: 512800,   max: 673000,   rate: 0.36, base: 121475 },
+  { min: 673000,   max: 857900,   rate: 0.39, base: 179147 },
+  { min: 857900,   max: 1817000,  rate: 0.41, base: 251258 },
+  { min: 1817000,  max: Infinity, rate: 0.45, base: 644489 },
 ];
 
 const REBATES = { primary: 17235, secondary: 9444, tertiary: 3145 };
@@ -57,6 +57,9 @@ function calculateRetirementDeduction(grossMonthly, retirementPct) {
 }
 
 function calculateSouthAfrica(employee) {
+  if (!employee.grossMonthlySalary || employee.grossMonthlySalary <= 0) {
+    throw new Error('Gross monthly salary must be positive');
+  }
   const {
     grossMonthlySalary, age = 30, medicalAid = false, medicalDependents = 0,
     retirementFundPct = 0, payPeriod = new Date().toISOString().slice(0, 7),

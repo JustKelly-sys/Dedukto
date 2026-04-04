@@ -2,6 +2,11 @@
    DEDUKTO - Frontend Application
    Tax logic + UI + PDF payslip download
    ============================================ */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 const COUNTRIES = {
   ZA: { name: "South Africa", code: "ZA", currency: "ZAR", symbol: "R", img: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&h=300&fit=crop&q=80" },
   GB: { name: "United Kingdom", code: "GB", currency: "GBP", symbol: "\u00A3", img: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=300&fit=crop&q=80" },
@@ -29,12 +34,12 @@ function calculateSouthAfrica(emp) {
   const retPct = emp.retirementFundPct || 0;
   const brackets = [
     { min: 0, max: 237100, rate: 0.18, base: 0 },
-    { min: 237101, max: 370500, rate: 0.26, base: 42678 },
-    { min: 370501, max: 512800, rate: 0.31, base: 77362 },
-    { min: 512801, max: 673000, rate: 0.36, base: 121475 },
-    { min: 673001, max: 857900, rate: 0.39, base: 179147 },
-    { min: 857901, max: 1817000, rate: 0.41, base: 251258 },
-    { min: 1817001, max: Infinity, rate: 0.45, base: 644489 },
+    { min: 237100, max: 370500, rate: 0.26, base: 42678 },
+    { min: 370500, max: 512800, rate: 0.31, base: 77362 },
+    { min: 512800, max: 673000, rate: 0.36, base: 121475 },
+    { min: 673000, max: 857900, rate: 0.39, base: 179147 },
+    { min: 857900, max: 1817000, rate: 0.41, base: 251258 },
+    { min: 1817000, max: Infinity, rate: 0.45, base: 644489 },
   ];
   const retMonthly = gross * (retPct / 100);
   const annualGross = gross * 12;
@@ -107,10 +112,10 @@ function calculateUnitedStates(emp) {
   const stdDed = filing === "married_jointly" ? 30000 : 15000;
   const fedTaxable = Math.max(0, annual - preTax - stdDed);
   const brackets = filing === "married_jointly"
-    ? [{m:0,x:23850,r:0.10,b:0},{m:23851,x:96950,r:0.12,b:2385},{m:96951,x:206700,r:0.22,b:11157},{m:206701,x:394600,r:0.24,b:35303},{m:394601,x:501050,r:0.32,b:80399},{m:501051,x:751600,r:0.35,b:114463},{m:751601,x:Infinity,r:0.37,b:202155.5}]
-    : [{m:0,x:11925,r:0.10,b:0},{m:11926,x:48475,r:0.12,b:1192.5},{m:48476,x:103350,r:0.22,b:5578.5},{m:103351,x:197300,r:0.24,b:17651.5},{m:197301,x:250525,r:0.32,b:40199.5},{m:250526,x:626350,r:0.35,b:57231.5},{m:626351,x:Infinity,r:0.37,b:188769.75}];
+    ? [{m:0,x:23850,r:0.10,b:0},{m:23850,x:96950,r:0.12,b:2385},{m:96950,x:206700,r:0.22,b:11157},{m:206700,x:394600,r:0.24,b:35303},{m:394600,x:501050,r:0.32,b:80399},{m:501050,x:751600,r:0.35,b:114463},{m:751600,x:Infinity,r:0.37,b:202155.5}]
+    : [{m:0,x:11925,r:0.10,b:0},{m:11925,x:48475,r:0.12,b:1192.5},{m:48475,x:103350,r:0.22,b:5578.5},{m:103350,x:197300,r:0.24,b:17651.5},{m:197300,x:250525,r:0.32,b:40199.5},{m:250525,x:626350,r:0.35,b:57231.5},{m:626350,x:Infinity,r:0.37,b:188769.75}];
   let fedTax = 0;
-  for (const b of brackets) { if (fedTaxable <= b.x) { fedTax = b.m === 0 ? fedTaxable * b.r : b.b + (fedTaxable - b.m + 1) * b.r; break; } }
+  for (const b of brackets) { if (fedTaxable <= b.x) { fedTax = b.m === 0 ? fedTaxable * b.r : b.b + (fedTaxable - b.m) * b.r; break; } }
   const monthlyFed = r2(fedTax / 12);
   const ssWages = Math.min(annual - preTax, 176100);
   const monthlySS = r2(ssWages * 0.062 / 12);
@@ -121,8 +126,8 @@ function calculateUnitedStates(emp) {
   const monthlyErMed = r2((annual - preTax) * 0.0145 / 12);
   const states = {
     TX:{brackets:[],sd:0},FL:{brackets:[],sd:0},WA:{brackets:[],sd:0},
-    CA:{sd:5540,brackets:[{m:0,x:10412,r:0.01},{m:10413,x:24684,r:0.02},{m:24685,x:38959,r:0.04},{m:38960,x:54081,r:0.06},{m:54082,x:68350,r:0.08},{m:68351,x:349137,r:0.093},{m:349138,x:418961,r:0.103},{m:418962,x:698271,r:0.113},{m:698272,x:Infinity,r:0.133}]},
-    NY:{sd:8000,brackets:[{m:0,x:8500,r:0.04},{m:8501,x:11700,r:0.045},{m:11701,x:13900,r:0.0525},{m:13901,x:80650,r:0.0585},{m:80651,x:215400,r:0.0625},{m:215401,x:1077550,r:0.0685},{m:1077551,x:5000000,r:0.0965},{m:5000001,x:25000000,r:0.103},{m:25000001,x:Infinity,r:0.109}]},
+    CA:{sd:5540,brackets:[{m:0,x:10412,r:0.01},{m:10412,x:24684,r:0.02},{m:24684,x:38959,r:0.04},{m:38959,x:54081,r:0.06},{m:54081,x:68350,r:0.08},{m:68350,x:349137,r:0.093},{m:349137,x:418961,r:0.103},{m:418961,x:698271,r:0.113},{m:698271,x:Infinity,r:0.133}]},
+    NY:{sd:8000,brackets:[{m:0,x:8500,r:0.04},{m:8500,x:11700,r:0.045},{m:11700,x:13900,r:0.0525},{m:13900,x:80650,r:0.0585},{m:80650,x:215400,r:0.0625},{m:215400,x:1077550,r:0.0685},{m:1077550,x:5000000,r:0.0965},{m:5000000,x:25000000,r:0.103},{m:25000000,x:Infinity,r:0.109}]},
   };
   const sc = states[state] || states.TX;
   let stateTax = 0;
@@ -207,8 +212,8 @@ function renderEmployees() {
       '<div class="card-top">' +
         '<div class="card-identity">' +
           '<div class="card-avatar has-img">' + getAvatarImg(emp.full_name) + '</div>' +
-          '<div><div class="card-name">' + emp.full_name + '</div>' +
-          (emp.position ? '<div class="card-position">' + emp.position + '</div>' : '') +
+          '<div><div class="card-name">' + escapeHtml(emp.full_name) + '</div>' +
+          (emp.position ? '<div class="card-position">' + escapeHtml(emp.position) + '</div>' : '') +
           '</div>' +
         '</div>' +
         '<span class="card-flag">' + c.code + '</span>' +
@@ -243,7 +248,7 @@ function selectPayslip(index) {
 }
 
 function getComplianceText(country) {
-  var labels = { ZA: "Validated against SARS eFiling standards 2024/25", GB: "Compliant with HMRC RTI regulations 2024/25", US: "IRS Circular E & state withholding compliant 2024/25" };
+  var labels = { ZA: "Validated against SARS eFiling standards 2025/26", GB: "Compliant with HMRC RTI regulations 2025/26", US: "IRS Circular E & state withholding compliant 2025/26" };
   return labels[country] || "Tax compliance verified";
 }
 
@@ -278,7 +283,7 @@ function renderPayslipDetail(index) {
         '<div class="ps-banner-blend"></div>' +
       '</div>' +
       '<div class="ps-detail-header">' +
-        '<div><div class="ps-detail-name">'+r.full_name+'</div>' +
+        '<div><div class="ps-detail-name">'+escapeHtml(r.full_name)+'</div>' +
         '<div class="ps-detail-period">Monthly Payroll \u00B7 '+period+' \u00B7 '+c.name+'</div></div>' +
         '<button class="ps-detail-download" onclick="downloadPayslip('+index+')">' +
           '<span class="material-symbols-outlined" style="font-size:18px">download</span> Download Payslip</button>' +
@@ -319,8 +324,8 @@ function renderPayslips() {
       '<div class="ps-card-top">' +
         '<div class="ps-card-identity">' +
           '<div class="ps-card-avatar has-img">' + getAvatarImg(result.full_name) + '</div>' +
-          '<div><div class="ps-card-name">' + result.full_name + '</div>' +
-          (result.position ? '<div class="ps-card-position">' + result.position + '</div>' : '') +
+          '<div><div class="ps-card-name">' + escapeHtml(result.full_name) + '</div>' +
+          (result.position ? '<div class="ps-card-position">' + escapeHtml(result.position) + '</div>' : '') +
           '</div>' +
         '</div>' +
         '<span class="ps-card-flag">' + c.code + '</span>' +
@@ -390,7 +395,7 @@ function downloadPayslip(index) {
     }
   }
 
-  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Payslip - ' + r.full_name + '</title>' +
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Payslip - ' + escapeHtml(r.full_name) + '</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">' +
     '<style>' +
     '* { margin:0; padding:0; box-sizing:border-box; }' +
@@ -422,9 +427,9 @@ function downloadPayslip(index) {
         '<div class="period"><strong>' + period + '</strong>Monthly Payslip<br>' + c.name + '</div>' +
       '</div>' +
       '<div class="employee-info">' +
-        '<div><div class="info-label">Employee Name</div><div class="info-value">' + r.full_name + '</div></div>' +
-        '<div><div class="info-label">Position</div><div class="info-value">' + (r.position || "N/A") + '</div></div>' +
-        '<div><div class="info-label">Department</div><div class="info-value">' + (r.department || "N/A") + '</div></div>' +
+        '<div><div class="info-label">Employee Name</div><div class="info-value">' + escapeHtml(r.full_name) + '</div></div>' +
+        '<div><div class="info-label">Position</div><div class="info-value">' + escapeHtml(r.position || "N/A") + '</div></div>' +
+        '<div><div class="info-label">Department</div><div class="info-value">' + escapeHtml(r.department || "N/A") + '</div></div>' +
         '<div><div class="info-label">Country</div><div class="info-value">' + c.name + '</div></div>' +
       '</div>' +
       '<table><thead><tr><th>Description</th><th>Amount (' + c.currency + ')</th></tr></thead><tbody>' +
@@ -468,7 +473,7 @@ async function runPayroll() {
     if (countryEmps.length === 0) continue;
     const c = COUNTRIES[countryCode];
     processingText.textContent = "Processing " + c.name + "...";
-    await sleep(600);
+    await sleep(200);
     for (const emp of countryEmps) {
       const result = calculatePayroll(emp);
       result.full_name = emp.full_name;
@@ -480,7 +485,7 @@ async function runPayroll() {
   processingText.textContent = "Complete \u2014 " + payrollResults.length + " payslips generated";
   document.getElementById("results-meta").textContent = payrollResults.length + " PAYSLIPS GENERATED";
   renderPayslips();
-  await sleep(800);
+  await sleep(300);
   reportSection.classList.remove("hidden-section"); reportSection.style.display = "block";
   renderReport();
   var nrEl=document.getElementById('stat-next-run');var rsEl=document.getElementById('stat-run-sub');if(nrEl)nrEl.textContent='\u2713 Done';if(rsEl)rsEl.textContent=payrollResults.length+' payslips generated';
@@ -560,7 +565,7 @@ function saveEmployee(e) {
   closeModal(); renderEmployees(); updateStats();
 }
 
-function deleteEmployee(index) { employees.splice(index, 1); renderEmployees(); updateStats(); }
+function deleteEmployee(index) { if (!confirm('Are you sure you want to delete this employee?')) return; employees.splice(index, 1); renderEmployees(); updateStats(); }
 
 // === SCROLL ANIMATIONS ===
 function initScrollAnimations() {

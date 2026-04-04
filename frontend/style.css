@@ -27,7 +27,7 @@
   --success: #34d399;
   --negative: rgba(255, 180, 171, 0.9);
   --font-headline: 'Space Grotesk', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
   --nav-height: 64px;
   --max-width: 1400px;
   --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);

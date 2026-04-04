@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://justkelly-sys.github.io/Dedukto/frontend/">Live Demo</a> · 
+  <a href="https://justkelly-sys.github.io/Dedukto/">Live Demo</a> · 
   <a href="#supported-jurisdictions">Jurisdictions</a> · 
   <a href="#quick-start">Quick Start</a> · 
   <a href="#architecture">Architecture</a>
@@ -37,7 +37,7 @@ Dedukto is a precision-engineered payroll calculation engine that handles statut
 
 ## Live Demo
 
-**[→ Try the live demo](https://justkelly-sys.github.io/Dedukto/frontend/)**
+**[→ Try the live demo](https://justkelly-sys.github.io/Dedukto/)**
 
 The demo includes 9 pre-loaded sample employees across ZA, GB, and US. Click **Run Payroll** to process all employees and generate payslips with real tax calculations.
 

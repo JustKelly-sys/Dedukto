@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dedukto — Wormhole Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --surface: #0e0e14;
+      --on-surface: #e4e2e4;
+      --on-surface-variant: #c9c4d8;
+      --primary: #cabeff;
+      --primary-container: #947dff;
+      --outline: #938ea1;
+      --font-body: 'Inter', sans-serif;
+      --font-headline: 'Space Grotesk', sans-serif;
+      --nav-height: 64px;
+      --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-body); background: var(--surface); color: var(--on-surface);
+      overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: var(--font-body); }
+    ::selection { background: rgba(202,190,255,0.3); }
+
+    /* Grain — removed for clean look */
+
+    /* Nav */
+    #main-nav {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; z-index: 100;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      background: rgba(14,14,20,0.8); border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: border-color 0.5s;
+    }
+    #main-nav.nav-scrolled { border-bottom-color: rgba(148,125,255,0.15); }
+    .nav-logo { font-size: 20px; font-weight: 500; letter-spacing: -0.02em; }
+    .nav-center { display: flex; gap: 32px; }
+    .nav-center a {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.4); transition: color 0.3s; position: relative;
+    }
+    .nav-center a:hover, .nav-center a.active { color: var(--on-surface); }
+    .nav-center a.active::after {
+      content: ''; position: absolute; bottom: -2px; left: 0;
+      width: 100%; height: 2px; background: var(--primary);
+    }
+    .nav-cta {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 8px 18px; background: rgba(148,125,255,0.4); backdrop-filter: blur(12px);
+      color: #fff; border: 1px solid rgba(148,125,255,0.25); border-radius: 8px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px;
+      background: rgba(148,125,255,0.35); backdrop-filter: blur(12px); color: #fff;
+      border: 1px solid rgba(148,125,255,0.2); border-radius: 8px;
+      font-size: 14px; transition: all 0.3s;
+    }
+    .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 4px 20px rgba(148,125,255,0.2); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+      background: rgba(148,125,255,0.06); color: var(--on-surface-variant);
+      border: 1px solid rgba(148,125,255,0.12); border-radius: 8px; font-size: 13px;
+    }
+
+    /* Hero */
+    #hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 32px 60px; overflow: hidden; z-index: 10; }
+    #wormhole-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+    .hero-gradient-overlay {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: linear-gradient(to bottom, rgba(14,14,20,0) 0%, rgba(14,14,20,0.06) 30%, rgba(14,14,20,0.4) 65%, rgba(14,14,20,0.85) 100%);
+      will-change: opacity;
+    }
+    .hero-content { position: relative; z-index: 5; max-width: 1400px; margin: 0 auto; width: 100%; will-change: transform, opacity; }
+    .hero-label-top { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--outline); margin-bottom: 24px; }
+    .hero-title { font-family: var(--font-body); font-size: clamp(40px,7vw,72px); font-weight: 100; line-height: 1; letter-spacing: -0.03em; margin-bottom: 24px; }
+    .hero-title-accent { color: var(--primary-container); font-weight: 100; font-style: italic; }
+    .hero-subtitle { font-size: clamp(15px,1.5vw,18px); font-weight: 300; color: var(--on-surface-variant); max-width: 640px; line-height: 1.7; margin-bottom: 40px; }
+    .hero-subtitle strong { color: #fff; font-weight: 400; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+    .hero-footer {
+      position: absolute; bottom: 32px; left: 32px; right: 32px; z-index: 5;
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);
+      will-change: transform, opacity;
+    }
+    .hero-label { font-size: 11px; letter-spacing: 0.15em; color: var(--outline); }
+
+    /* Wormhole text */
+    .wormhole-text-container { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .wormhole-text {
+      position: absolute; font-family: var(--font-body);
+      font-size: clamp(28px,5vw,56px); font-weight: 200; letter-spacing: -0.02em;
+      color: rgba(255,255,255,0.92); opacity: 0;
+      transform: translateY(30px) scale(0.92);
+      will-change: transform, opacity;
+      text-shadow: 0 4px 60px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.5);
+      white-space: nowrap;
+    }
+    .wormhole-text span { color: var(--primary); font-weight: 300; }
+
+    /* Content sections */
+    section.content-section { padding: 100px 32px; position: relative; z-index: 1; }
+    .section-header { max-width: 1400px; margin: 0 auto; margin-bottom: 48px; }
+    .section-title { font-family: var(--font-body); font-size: clamp(32px,5vw,48px); font-weight: 200; letter-spacing: -0.02em; line-height: 1.1; }
+    .section-title-accent { color: var(--primary); }
+    .section-meta { font-size: 10px; letter-spacing: 0.3em; color: var(--primary); text-transform: uppercase; margin-top: 8px; }
+    .section-subtitle { font-size: 18px; color: var(--on-surface-variant); font-weight: 300; line-height: 1.6; max-width: 600px; margin-top: 8px; }
+    .section-content { max-width: 1400px; margin: 0 auto; }
+
+    /* Stats */
+    .stats-bento { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 24px; margin-bottom: 48px; }
+    .stat-card {
+      padding: 32px; border-radius: 12px;
+      background: rgba(100,80,180,0.06); backdrop-filter: blur(24px) saturate(1.2);
+      border: 1px solid rgba(148,125,255,0.1);
+    }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--outline); margin-bottom: 8px; }
+    .stat-value { font-family: var(--font-headline); font-size: 28px; font-weight: 500; }
+
+    /* Jurisdiction cards */
+    .jurisdiction-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .jurisdiction-card {
+      background: rgba(200,190,255,0.04); backdrop-filter: blur(24px) saturate(1.2);
+      border: 1px solid rgba(148,125,255,0.08); border-radius: 16px;
+      overflow: hidden; transition: all 0.4s var(--ease-out-expo);
+    }
+    .jurisdiction-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .jurisdiction-body { padding: 28px; }
+    .jurisdiction-region { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; }
+    .jurisdiction-card h3 { font-size: 22px; font-weight: 400; margin-bottom: 24px; }
+    .jurisdiction-card li {
+      font-size: 13px; color: var(--on-surface-variant); padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .jurisdiction-card li:last-child { border-bottom: none; }
+    .jurisdiction-card li .material-symbols-outlined { font-size: 18px; color: var(--primary); flex-shrink: 0; }
+    .jurisdiction-item-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--primary); font-weight: 500; margin-bottom: 2px; }
+    .jurisdiction-item-desc { font-size: 13px; color: var(--on-surface-variant); line-height: 1.5; }
+
+    /* Footer */
+    #footer { padding: 48px 32px; border-top: 1px solid rgba(255,255,255,0.05); background: #0a0a10; z-index: 1; position: relative; }
+    .footer-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-brand { font-family: var(--font-headline); font-size: 16px; font-weight: 500; color: var(--primary); }
+    .footer-copy { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .footer-links { display: flex; gap: 32px; }
+    .footer-links a { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.3em; text-transform: uppercase; }
+
+    /* Scroll reveal */
+    .scroll-reveal { opacity: 0; transform: translateY(60px); will-change: transform, opacity; }
+    .scroll-card { opacity: 0; transform: translateY(80px) rotateX(4deg); transform-origin: bottom center; will-change: transform, opacity; }
+
+    @media (max-width: 900px) {
+      .stats-bento { grid-template-columns: 1fr; }
+      .jurisdiction-grid { grid-template-columns: 1fr; }
+      #hero { padding: 100px 24px 40px; }
+      section { padding: 60px 24px; }
+      .nav-center { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- grain removed -->
+
+  <nav id="main-nav">
+    <a href="#hero" class="nav-logo">Dedukto</a>
+    <div class="nav-center">
+      <a href="#demo" class="active">Demo</a>
+      <a href="#jurisdictions">Jurisdictions</a>
+      <a href="https://github.com/JustKelly-sys/Dedukto" target="_blank">Github</a>
+    </div>
+    <button class="nav-cta">Get Started</button>
+  </nav>
+
+  <section id="hero">
+    <canvas id="wormhole-canvas"></canvas>
+    <div class="hero-gradient-overlay"></div>
+    <div class="wormhole-text-container">
+      <div class="wormhole-text">You scroll...</div>
+      <div class="wormhole-text">We <span>calculate.</span></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-label-top">OPEN-SOURCE PAYROLL ENGINE</p>
+      <h1 class="hero-title">Payroll without<br><span class="hero-title-accent">borders.</span></h1>
+      <p class="hero-subtitle">Open-source gross-to-net calculations across <strong>South Africa</strong>, <strong>United Kingdom</strong>, and <strong>United States</strong>. Built on n8n.</p>
+      <div class="hero-actions">
+        <button class="btn-primary">Try Demo <span class="material-symbols-outlined">arrow_forward</span></button>
+        <button class="btn-secondary">View Jurisdictions</button>
+      </div>
+    </div>
+    <div class="hero-footer">
+      <span class="hero-label">DEDUKTO &copy;2026</span>
+      <span class="hero-label">EXPLORE <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">arrow_downward</span></span>
+    </div>
+  </section>
+
+  <section id="demo" class="content-section">
+    <div class="section-header scroll-reveal">
+      <h2 class="section-title">Payroll <span class="section-title-accent">Workspace</span></h2>
+      <p class="section-subtitle">Multi-country tax calculations with surgical precision.</p>
+      <p class="section-meta">9 SAMPLE EMPLOYEES · 3 COUNTRIES · REAL TAX BRACKETS</p>
+    </div>
+    <div class="section-content scroll-reveal">
+      <div class="stats-bento">
+        <div class="stat-card"><p class="stat-label">Active Staff</p><h3 class="stat-value">9</h3></div>
+        <div class="stat-card"><p class="stat-label">Next Run</p><h3 class="stat-value">Ready</h3></div>
+        <div class="stat-card"><p class="stat-label">Total Monthly Gross</p><h3 class="stat-value">&mdash;</h3></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="jurisdictions" class="content-section">
+    <div class="section-header scroll-reveal">
+      <h2 class="section-title">Global Payroll<br><span class="section-title-accent">Architecture.</span></h2>
+      <p class="section-subtitle">Precision-engineered multi-country tax compliance.</p>
+    </div>
+    <div class="section-content">
+      <div class="jurisdiction-grid">
+        <div class="jurisdiction-card scroll-card">
+          <div class="jurisdiction-body">
+            <div class="jurisdiction-region">REGION: AFRICA</div>
+            <h3>South Africa</h3>
+            <ul>
+              <li><span class="material-symbols-outlined">receipt_long</span><div><div class="jurisdiction-item-label">PAYE</div><div class="jurisdiction-item-desc">Progressive income tax from SARS tables.</div></div></li>
+              <li><span class="material-symbols-outlined">shield</span><div><div class="jurisdiction-item-label">UIF</div><div class="jurisdiction-item-desc">Unemployment Insurance Fund at 1%.</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="jurisdiction-card scroll-card">
+          <div class="jurisdiction-body">
+            <div class="jurisdiction-region">REGION: EUROPE</div>
+            <h3>United Kingdom</h3>
+            <ul>
+              <li><span class="material-symbols-outlined">account_balance</span><div><div class="jurisdiction-item-label">INCOME TAX</div><div class="jurisdiction-item-desc">RTI-compliant HMRC calculation.</div></div></li>
+              <li><span class="material-symbols-outlined">favorite</span><div><div class="jurisdiction-item-label">NATIONAL INSURANCE</div><div class="jurisdiction-item-desc">Class 1 NI contributions.</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="jurisdiction-card scroll-card">
+          <div class="jurisdiction-body">
+            <div class="jurisdiction-region">REGION: NORTH AMERICA</div>
+            <h3>United States</h3>
+            <ul>
+              <li><span class="material-symbols-outlined">gavel</span><div><div class="jurisdiction-item-label">FEDERAL TAX</div><div class="jurisdiction-item-desc">W-4 withholding via IRS Pub 15-T.</div></div></li>
+              <li><span class="material-symbols-outlined">security</span><div><div class="jurisdiction-item-label">SOCIAL SECURITY</div><div class="jurisdiction-item-desc">OASDI at 6.2% capped.</div></div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer" class="scroll-reveal">
+    <div class="footer-content">
+      <span class="footer-brand">Dedukto</span>
+      <span class="footer-copy">&copy; 2026 DEDUKTO</span>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/tshepisojafta/" target="_blank">LinkedIn</a>
+        <a href="https://github.com/JustKelly-sys/Dedukto" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Vertex shader -->
+  <script id="vs" type="x-shader">
+    attribute vec2 a;
+    void main() { gl_Position = vec4(a, 0.0, 1.0); }
+  </script>
+
+  <!-- Fragment shader: procedural contours — stays sharp at any zoom -->
+  <script id="fs" type="x-shader">
+  precision highp float;
+  uniform vec2 u_res;
+  uniform float u_zoom, u_rot, u_op;
+  uniform vec2 u_ctr;
+
+  vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}
+  vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}
+  vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}
+  float snoise(vec2 v){const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);vec2 i=floor(v+dot(v,C.yy)),x0=v-i+dot(i,C.xx);vec2 i1=(x0.x>x0.y)?vec2(1,0):vec2(0,1);vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod289(i);vec3 p=permute(permute(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));vec3 m=max(.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);m=m*m;m=m*m;vec3 x=2.0*fract(p*C.www)-1.0,h=abs(x)-.5,ox=floor(x+.5),a0=x-ox;m*=1.79284291400159-.85373472095314*(a0*a0+h*h);vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}
+
+  float sn(vec2 p){return 0.55*snoise(p)+0.30*snoise(p*2.03)+0.15*snoise(p*4.07);}
+
+  vec2 sp(vec2 p,vec2 c,float s,float t){
+    vec2 d=p-c;float di=length(d);
+    float a=atan(d.y,d.x)+s/(1.0+di*t);
+    return c+vec2(cos(a),sin(a))*di;
+  }
+
+  float ter(vec2 p){
+    float w=-0.50*exp(-dot(p-vec2(1.85,1.15),p-vec2(1.85,1.15))*1.8)
+            -0.25*exp(-dot(p-vec2(3.55,2.28),p-vec2(3.55,2.28))*1.6)
+            -0.15*exp(-dot(p-vec2(0.65,1.80),p-vec2(0.65,1.80))*2.2);
+    p=sp(p,vec2(1.85,1.15),5.5,0.9);
+    p=sp(p,vec2(3.55,2.28),3.0,1.2);
+    p=sp(p,vec2(0.65,1.80),2.0,1.6);
+    float h=sn(p*0.7);
+    h+=0.10*snoise(p*0.35+vec2(2.1,4.3));
+    h+=w;
+    return h;
+  }
+
+  void main(){
+    vec2 uv=gl_FragCoord.xy/u_res;
+    float asp=u_res.x/u_res.y;
+    uv.x*=asp;
+    vec2 c=u_ctr; c.x*=asp;
+
+    uv=(uv-c)/u_zoom+c;
+    float co=cos(u_rot),si=sin(u_rot);
+    vec2 d=uv-c;
+    uv=vec2(d.x*co-d.y*si,d.x*si+d.y*co)+c;
+
+    vec2 p=uv*2.85;
+    float h=ter(p);
+
+    float lightGrad=smoothstep(0.35,0.78,uv.x/asp);
+    h+=lightGrad*0.62-0.08;
+
+    float levels=40.0;
+    float scaledH=h*levels;
+    float frc=fract(scaledH);
+    float quantized=floor(scaledH)/levels;
+    float edgeDist=min(frc,1.0-frc);
+
+    float eps=0.0015/max(u_zoom*0.2,1.0);
+    float hR=ter((uv+vec2(eps,0))*2.85),hL=ter((uv-vec2(eps,0))*2.85);
+    float hU=ter((uv+vec2(0,eps))*2.85),hD=ter((uv-vec2(0,eps))*2.85);
+    vec2 grad=vec2(hR-hL,hU-hD)/(2.0*eps);
+    vec2 gd=length(grad)>0.001?normalize(grad):vec2(0);
+    float fl=dot(gd,normalize(vec2(0.5,0.6)));
+
+    float inE=1.0-smoothstep(0.0,0.08,edgeDist);
+    float emboss=fl*inE*0.45;
+    float lw=0.018+0.006/(max(u_zoom*0.3,1.0));
+    float thinLine=1.0-smoothstep(0.0,lw,edgeDist);
+
+    float ct=clamp(quantized*0.5+0.5,0.0,1.0);
+    vec3 col;
+    if(ct<0.20)      col=mix(vec3(0.0,0.0,0.02),   vec3(0.0,0.004,0.05),  ct/0.20);
+    else if(ct<0.40) col=mix(vec3(0.0,0.004,0.05),  vec3(0.06,0.06,0.12),  (ct-0.20)/0.20);
+    else if(ct<0.55) col=mix(vec3(0.06,0.06,0.12),  vec3(0.18,0.18,0.26),  (ct-0.40)/0.15);
+    else if(ct<0.70) col=mix(vec3(0.18,0.18,0.26),  vec3(0.38,0.38,0.47),  (ct-0.55)/0.15);
+    else if(ct<0.85) col=mix(vec3(0.38,0.38,0.47),  vec3(0.58,0.58,0.62),  (ct-0.70)/0.15);
+    else             col=mix(vec3(0.58,0.58,0.62),  vec3(0.73,0.73,0.77),  (ct-0.85)/0.15);
+
+    col*=1.0+emboss;
+    col*=1.0-thinLine*0.30;
+    col+=pow(max(fl,0.0),6.0)*inE*0.10*vec3(0.65,0.65,0.75);
+
+    gl_FragColor=vec4(col,u_op);
+  }
+  </script>
+
+  <script>
+  (function(){
+    var canvas=document.getElementById("wormhole-canvas"),gl=canvas.getContext("webgl",{alpha:true,antialias:false});
+    if(!gl){console.error("No WebGL");return;}
+
+    function mk(s,t){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(sh));return null;}return sh;}
+
+    var vs=mk(document.getElementById("vs").textContent,gl.VERTEX_SHADER);
+    var fs=mk(document.getElementById("fs").textContent,gl.FRAGMENT_SHADER);
+    var pg=gl.createProgram();gl.attachShader(pg,vs);gl.attachShader(pg,fs);gl.linkProgram(pg);
+    if(!gl.getProgramParameter(pg,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(pg));return;}
+    gl.useProgram(pg);
+
+    var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    var a=gl.getAttribLocation(pg,"a");gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+
+    var U={
+      res:gl.getUniformLocation(pg,"u_res"),
+      zoom:gl.getUniformLocation(pg,"u_zoom"),
+      ctr:gl.getUniformLocation(pg,"u_ctr"),
+      rot:gl.getUniformLocation(pg,"u_rot"),
+      op:gl.getUniformLocation(pg,"u_op")
+    };
+
+    // Hole center: matched to the main vortex in the procedural terrain
+    var S={zoom:1,cx:0.406,cy:0.404,rot:0,op:1,dirty:true,w:0,h:0};
+    window.__ws=S;
+
+    function resize(){
+      var d=Math.min(devicePixelRatio||1,2),w=canvas.clientWidth,h=canvas.clientHeight,pw=w*d,ph=h*d;
+      if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;S.w=pw;S.h=ph;gl.viewport(0,0,pw,ph);S.dirty=true;}
+    }
+
+    function render(){
+      if(!S.dirty){requestAnimationFrame(render);return;}
+      S.dirty=false;resize();
+      gl.uniform2f(U.res,S.w,S.h);
+      gl.uniform1f(U.zoom,S.zoom);
+      gl.uniform2f(U.ctr,S.cx,S.cy);
+      gl.uniform1f(U.rot,S.rot);
+      gl.uniform1f(U.op,S.op);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      requestAnimationFrame(render);
+    }
+
+    addEventListener("resize",function(){S.dirty=true;});
+    resize();render();
+  })();
+  </script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script>
+  (function() {
+    function init() {
+      if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return setTimeout(init, 100);
+      gsap.registerPlugin(ScrollTrigger);
+
+      var S = window.__ws;
+      if (!S) return;
+
+      var hero = document.getElementById('hero');
+      var hc = hero.querySelector('.hero-content');
+      var hf = hero.querySelector('.hero-footer');
+      var go = hero.querySelector('.hero-gradient-overlay');
+      var tx = hero.querySelectorAll('.wormhole-text');
+
+      var P = { zoom: 1, rot: 0, op: 1 };
+      gsap.ticker.add(function() {
+        if (S.zoom !== P.zoom || S.rot !== P.rot || S.op !== P.op) {
+          S.zoom = P.zoom;
+          S.rot = P.rot;
+          S.op = P.op;
+          S.dirty = true;
+        }
+      });
+
+      var tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: hero,
+          start: 'top top',
+          end: '+=400%',
+          pin: true,
+          scrub: 1.2,
+          anticipatePin: 1,
+          pinSpacing: true,
+          onUpdate: function(self) {
+            var nav = document.getElementById('main-nav');
+            if (nav) nav.classList.toggle('nav-scrolled', self.progress > 0.05);
+          }
+        }
+      });
+
+      // Phase 1: Content fades out
+      tl.to(hc, { opacity: 0, y: -80, scale: 0.97, duration: 0.10, ease: 'power2.in' }, 0);
+      tl.to(hf, { opacity: 0, y: 30, duration: 0.10, ease: 'power2.in' }, 0);
+      tl.to(go, { opacity: 0, duration: 0.12, ease: 'power2.out' }, 0.03);
+
+      // Phase 2: Zoom into the vortex hole — stays sharp (procedural)
+      tl.to(P, { zoom: 45, duration: 0.71, ease: 'power2.inOut' }, 0.04);
+      tl.to(P, { rot: 0.35, duration: 0.71, ease: 'power1.inOut' }, 0.04);
+
+      // Phase 3: Text reveals
+      tl.to(tx[0], { opacity: 1, y: 0, scale: 1, duration: 0.07, ease: 'power3.out' }, 0.14);
+      tl.to(tx[0], { opacity: 0, scale: 1.2, y: -20, duration: 0.07, ease: 'power2.in' }, 0.21);
+      tl.to(tx[1], { opacity: 1, y: 0, scale: 1, duration: 0.07, ease: 'power3.out' }, 0.28);
+      tl.to(tx[1], { opacity: 0, scale: 1.2, y: -20, duration: 0.07, ease: 'power2.in' }, 0.35);
+
+      // Phase 4: Fade into darkness
+      tl.to(P, { op: 0, duration: 0.10, ease: 'power2.in' }, 0.70);
+      tl.set(hero, { backgroundColor: 'var(--surface)' }, 0.80);
+
+      // Section reveals
+      document.querySelectorAll('.scroll-reveal').forEach(function(el) {
+        gsap.to(el, {
+          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none reverse' },
+          opacity: 1, y: 0, duration: 1.0, ease: 'power3.out'
+        });
+      });
+
+      var cards = document.querySelectorAll('.scroll-card');
+      if (cards.length) {
+        gsap.to(cards, {
+          scrollTrigger: { trigger: cards[0].parentElement, start: 'top 82%', toggleActions: 'play none none reverse' },
+          opacity: 1, y: 0, rotateX: 0, duration: 1.2, stagger: 0.24, ease: 'power3.out'
+        });
+      }
+
+      // Parallax on section titles
+      document.querySelectorAll('.section-title').forEach(function(t) {
+        gsap.to(t, {
+          scrollTrigger: { trigger: t, start: 'top bottom', end: 'bottom top', scrub: 1 },
+          y: -30, ease: 'none'
+        });
+      });
+
+      addEventListener('load', function() { ScrollTrigger.refresh(); });
+    }
+
+    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
+  </script>
+</body>
+</html>

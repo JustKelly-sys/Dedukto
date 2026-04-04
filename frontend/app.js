@@ -3,9 +3,9 @@
    Tax logic + UI + PDF payslip download
    ============================================ */
 const COUNTRIES = {
-  ZA: { name: "South Africa", code: "ZA", currency: "ZAR", symbol: "R" },
-  GB: { name: "United Kingdom", code: "GB", currency: "GBP", symbol: "\u00A3" },
-  US: { name: "United States", code: "US", currency: "USD", symbol: "$" },
+  ZA: { name: "South Africa", code: "ZA", currency: "ZAR", symbol: "R", img: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&h=300&fit=crop&q=80" },
+  GB: { name: "United Kingdom", code: "GB", currency: "GBP", symbol: "\u00A3", img: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=300&fit=crop&q=80" },
+  US: { name: "United States", code: "US", currency: "USD", symbol: "$", img: "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&h=300&fit=crop&q=80" },
 };
 
 let employees = [
@@ -272,7 +272,11 @@ function renderPayslipDetail(index) {
   empRows += '<div class="ps-employer-total"><span>Total Cost to Employer</span><span>'+formatCurrency(r.totalCostToEmployer,r.country)+'</span></div>';
   panel.innerHTML =
     '<div class="ps-detail">' +
-      '<div class="ps-detail-glow"></div>' +
+      '<div class="ps-detail-banner">' +
+        '<div class="ps-banner-topo"></div>' +
+        '<div class="ps-banner-country" style="background-image:url(\''+c.img+'\')"></div>' +
+        '<div class="ps-banner-blend"></div>' +
+      '</div>' +
       '<div class="ps-detail-header">' +
         '<div><div class="ps-detail-name">'+r.full_name+'</div>' +
         '<div class="ps-detail-period">Monthly Payroll \u00B7 '+period+' \u00B7 '+c.name+'</div></div>' +
@@ -393,7 +397,8 @@ function downloadPayslip(index) {
     'body { font-family: "DM Sans", sans-serif; color: #1a1a2e; background: #fff; padding: 40px; }' +
     '.payslip { max-width: 680px; margin: 0 auto; }' +
     '.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #1a1a2e; }' +
-    '.logo { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; }' +
+    '.logo { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; gap: 10px; }' +
+    '.logo img { width: 32px; height: 32px; border-radius: 6px; }' +
     '.logo-sub { font-size: 10px; letter-spacing: 0.15em; color: #666; text-transform: uppercase; margin-top: 4px; }' +
     '.period { text-align: right; font-size: 12px; color: #666; }' +
     '.period strong { display: block; font-size: 14px; color: #1a1a2e; }' +

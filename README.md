@@ -6,11 +6,12 @@
 
 <p align="center">
   <strong>Open-source multi-country payroll engine with real tax calculations.</strong><br>
-  Gross-to-net across South Africa, United Kingdom, and United States — built on n8n.
+  Gross-to-net across South Africa, United Kingdom, and United States — with an MCP server for AI agent integration.
 </p>
 
 <p align="center">
   <a href="https://justkelly-sys.github.io/Dedukto/">Live Demo</a> · 
+  <a href="#mcp-server">MCP Server</a> · 
   <a href="#supported-jurisdictions">Jurisdictions</a> · 
   <a href="#quick-start">Quick Start</a> · 
   <a href="#architecture">Architecture</a>
@@ -20,18 +21,81 @@
 
 ## Overview
 
-Dedukto is a precision-engineered payroll calculation engine that handles statutory deductions across three major tax jurisdictions. It ships with a fully interactive frontend demo featuring live payroll processing, downloadable PDF payslips, and a multi-country compliance report.
+Dedukto is a precision-engineered payroll calculation engine that handles statutory deductions across three major tax jurisdictions. It ships with:
 
-**Built for transparency.** Every tax bracket, rebate, and threshold is implemented in auditable JavaScript with source comments referencing official SARS, HMRC, and IRS documentation.
+- **Interactive Frontend** — Liquid-glass UI with live payroll processing, PDF payslips, and compliance reports
+- **MCP Server** — Model Context Protocol server exposing payroll calculations as AI-callable tools
+- **n8n Workflow** — Visual automation workflow for batch payroll processing
+
+**Built for transparency.** Every tax bracket, rebate, and threshold is implemented in auditable code with source comments referencing official SARS, HMRC, and IRS documentation.
 
 ### Key Features
 
-- **Real Tax Calculations** — Current 2025/2026 brackets from official government sources
+- **Real Tax Calculations** — Current 2024/2025 brackets from official government sources
 - **3 Jurisdictions** — South Africa (PAYE, UIF, SDL), United Kingdom (Income Tax, NI, Pension), United States (Federal, State, FICA, 401(k))
+- **MCP Server** — 3 tools (`calculate_paye`, `calculate_net_pay`, `list_tax_brackets`) callable by any MCP-compatible AI agent
 - **Interactive Frontend** — Purple liquid-glass UI with live payroll processing, master-detail payslips, and PDF export
 - **Compliance Report** — Aggregated multi-country summary with per-jurisdiction breakdowns
-- **Self-Hostable** — Run entirely on your own infrastructure via n8n
-- **31 Unit Tests** — Full test coverage across all tax calculations
+- **52+ Tests** — 31 JS unit tests + 21 Python tests covering all tax calculations and MCP tools
+
+---
+
+## MCP Server
+
+Dedukto exposes SARS 2024/25 payroll calculations as **Model Context Protocol (MCP)** tools — callable by Claude Desktop, LangGraph agents, or any MCP-compatible client.
+
+### Tools
+
+| Tool | Input | Output |
+|---|---|---|
+| `calculate_paye` | annual gross, jurisdiction, age | Full PAYE/UIF/SDL breakdown + net pay |
+| `calculate_net_pay` | monthly gross, jurisdiction, age | Monthly net take-home |
+| `list_tax_brackets` | jurisdiction | All 7 SARS 2024/25 brackets + rebate |
+
+### Quick Start (MCP)
+
+```bash
+# Run as standalone MCP server
+python -m mcp_server.server
+
+# Or use directly as a Python library
+python -c "from mcp_server.tax_engine import calculate_paye_za; print(calculate_paye_za(600_000))"
+```
+
+### Example
+
+```python
+from mcp_server.tax_engine import calculate_paye_za
+
+result = calculate_paye_za(annual_gross=600_000)
+print(f"PAYE/month:  R{result.paye_monthly:,.2f}")    # R11,136.42
+print(f"UIF/month:   R{result.uif_monthly:,.2f}")     # R177.12
+print(f"Net/month:   R{result.net_monthly:,.2f}")      # R38,686.46
+print(f"Effective %: {result.effective_rate_pct}%")     # 22.27%
+```
+
+### MCP Tool Call (JSON)
+
+```json
+{
+  "tool": "calculate_paye",
+  "arguments": {
+    "gross_income": 600000,
+    "jurisdiction": "ZA",
+    "age": 30
+  }
+}
+```
+
+### Input Validation
+
+- `annual_gross < 0` → `ValueError`
+- `age <= 0 or age > 120` → `ValueError`
+- Unsupported jurisdiction → `ValueError` (ZA currently supported via MCP)
+
+### Integration with LexFlow
+
+The MCP server integrates with [LexFlow](https://github.com/JustKelly-sys/LexFlow) as Layer 5 (System Integration) of the AI Ops Suite. When the LangGraph billing pipeline detects payroll-related matters, it calls the Dedukto tax engine to enrich billing entries with PAYE/Net breakdowns.
 
 ---
 
@@ -56,7 +120,7 @@ The demo includes 9 pre-loaded sample employees across ZA, GB, and US. Click **R
 
 ## Supported Jurisdictions
 
-### South Africa (2025/2026 Tax Year)
+### South Africa (2024/2025 Tax Year)
 
 | Component | Rate |
 |-----------|------|
@@ -117,8 +181,12 @@ curl -X POST http://localhost:5678/webhook/payroll-run \
 ### Run Tests
 
 ```bash
+# JS unit tests (31 tests)
 npm test
-# 31 tests across all 3 jurisdictions
+
+# Python MCP tests (21 tests)
+pip install pytest mcp
+python -m pytest tests/ -v
 ```
 
 ---
@@ -131,16 +199,20 @@ Dedukto/
 │   ├── index.html               # Single-page app shell
 │   ├── style.css                # Tectonic Ledger design system
 │   ├── app.js                   # Tax engine + UI + PDF generation
-│   ├── logo.png                 # Brand mark
-│   ├── hero-bg.png              # Topology background
-│   ├── avatar-male.png          # Professional avatar (male)
-│   └── avatar-female.png        # Professional avatar (female)
-├── tax-logic/
+│   └── logo.png                 # Brand mark
+├── mcp_server/                  # Python MCP server (NEW)
+│   ├── server.py                # FastMCP server — 3 tools
+│   ├── tax_engine.py            # SARS 2024/25 PAYE/UIF/SDL pure functions
+│   └── __init__.py
+├── tax-logic/                   # JavaScript tax engines
 │   ├── index.js                 # Unified entry (route by country)
 │   ├── south-africa.js          # SARS PAYE + UIF + SDL + credits
 │   ├── united-kingdom.js        # HMRC Income Tax + NI + pension
 │   ├── united-states.js         # IRS Federal + State + FICA + 401(k)
 │   └── test-calculations.js     # 31 unit tests
+├── tests/                       # Python tests
+│   ├── test_tax_engine.py       # 13 unit tests
+│   └── test_mcp_server.py       # 8 integration tests
 ├── workflows/
 │   └── global-payroll-processor.json   # n8n workflow
 ├── sample-data/
@@ -200,46 +272,6 @@ graph LR
     style J fill:#2d6a4f,stroke:#40916c,color:#fff
 ```
 
-### How to View the Workflow
-
-| Method | Effort | Link |
-|--------|--------|------|
-| **View diagram above** | Zero | Scroll up |
-| **View JSON on GitHub** | Zero | [`global-payroll-processor.json`](workflows/global-payroll-processor.json) |
-| **Import into n8n Cloud** | 2 min | Sign up at [n8n.io](https://n8n.io), import the JSON |
-| **Run locally** | 5 min | `npx n8n` then import via UI |
-
----
-
-## Payslip Output
-
-Every calculation returns a structured payslip:
-
-```json
-{
-  "country": "ZA",
-  "currency": "ZAR",
-  "grossSalary": 55000,
-  "deductions": {
-    "paye": 10889.64,
-    "uif_employee": 177.12,
-    "retirement_fund": 4125,
-    "medical_aid_credit": -728
-  },
-  "totalEmployeeDeductions": 15191.76,
-  "netSalary": 39808.24,
-  "employerContributions": {
-    "uif_employer": 177.12,
-    "sdl": 550
-  },
-  "totalCostToEmployer": 55727.12,
-  "taxDetails": {
-    "annualGross": 660000,
-    "effectiveTaxRate": "19.81%"
-  }
-}
-```
-
 ---
 
 ## Why Dedukto?
@@ -248,10 +280,10 @@ Every calculation returns a structured payslip:
 |---|---|---|
 | **Cost** | $12-99/employee/month | Free and open-source |
 | **Self-hostable** | No (cloud SaaS) | Yes (npx n8n) |
-| **Tax logic** | Black box | Transparent, commented JS |
+| **Tax logic** | Black box | Transparent, commented JS + Python |
+| **AI integration** | None | MCP tools for any AI agent |
 | **Multi-country** | Behind subscription | Open and auditable |
 | **Customizable** | Limited | Fork any calculation |
-| **Vendor lock-in** | Platform-dependent | Export JSON anytime |
 
 ---
 
@@ -276,8 +308,9 @@ When a new tax year begins, update the constants at the top of each file:
 | `tax-logic/south-africa.js` | PAYE brackets, rebates, UIF cap, medical credits |
 | `tax-logic/united-kingdom.js` | Income tax bands, NI thresholds, student loan thresholds |
 | `tax-logic/united-states.js` | Federal brackets, standard deduction, SS wage cap, state brackets |
+| `mcp_server/tax_engine.py` | PAYE brackets, rebates, UIF ceiling (Python MCP) |
 
-Run `npm test` after to verify calculations.
+Run `npm test` and `python -m pytest tests/ -v` after to verify calculations.
 
 ---
 
